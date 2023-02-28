@@ -35,9 +35,17 @@ class CompanyModel
         $this->address = $address;
     }
 
+    public function getAllInactiveCompanies()
+    {
+        $query = "SELECT * FROM companies where active=0";
+        $result = $this->db->query($query);
+
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
     public function getAllCompanies()
     {
-        $query = "SELECT * FROM companies";
+        $query = "SELECT * FROM companies where active=1";
         $result = $this->db->query($query);
 
         return $result->fetch_all(MYSQLI_ASSOC);
@@ -74,9 +82,12 @@ class CompanyModel
         $this->db->query($query);
     }
 
-    public function delete()
+    public function inactive()
     {
-        $query = "DELETE FROM companies WHERE id = " . $this->id;
+        $query = "
+            UPDATE companies SET active=0 
+            WHERE id = " . $this->id;
+
         $this->db->query($query);
     }
 }

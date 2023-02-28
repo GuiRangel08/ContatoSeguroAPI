@@ -116,9 +116,9 @@ class CompanyController
         $this->company->setId($id);
 
         if ($this->company->getCompanyById()) {
-            $this->company->delete();
+            $this->company->inactive();
             header('HTTP/1.1 200 OK');
-            return ['message' => 'Company deleted successfully'];
+            return ['message' => 'Company inactived successfully'];
         } else {
             header('HTTP/1.1 404 (Not Found)');
             return ['message' => 'Company not found'];

@@ -15,7 +15,7 @@ RUN chown -R www-data:www-data /var/www/html/ && \
 
 RUN apt update && apt install git
 
-RUN composer install && composer dumpautoload
+RUN composer install && composer dump-autoload
 
 RUN echo "DocumentRoot /var/www/html/public" > /etc/apache2/sites-enabled/000-default.conf
 

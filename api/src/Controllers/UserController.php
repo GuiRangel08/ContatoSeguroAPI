@@ -123,7 +123,7 @@ class UserController
         $this->user->setId($id);
 
         if ($this->user->getUserById()) {
-            $this->user->delete();
+            $this->user->inactive();
             header('HTTP/1.1 200 OK');
             return ['message' => 'User deleted successfully'];
         } else {

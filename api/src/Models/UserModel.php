@@ -53,6 +53,26 @@ class UserModel
         $this->birthState = $birthState;
     }
 
+    public function getAllInactiveUsers()
+    {
+        $query = "
+            SELECT u.*, GROUP_CONCAT(c.name SEPARATOR ',') as companies
+            FROM users u
+            JOIN users_companies uc on u.id = uc.user_id
+            JOIN companies c on uc.company_id = c.id
+            WHERE u.active = 0
+            GROUP BY u.id;
+        ";
+
+        $result = $this->db->query($query);
+        $rows = $result->fetch_all(MYSQLI_ASSOC);
+
+        foreach ($rows as &$row) {
+            $row['companies'] = explode(',', $row['companies']);
+        }
+
+        return $rows;
+    }
 
     public function getAllUsers()
     {
@@ -61,6 +81,7 @@ class UserModel
             FROM users u
             JOIN users_companies uc on u.id = uc.user_id
             JOIN companies c on uc.company_id = c.id
+            WHERE u.active = 1
             GROUP BY u.id;
         ";
 
@@ -107,9 +128,12 @@ class UserModel
         $this->db->query($query);
     }
 
-    public function delete()
+    public function inactive()
     {
-        $query = "DELETE FROM users WHERE id = " . $this->id;
+        $query = "
+            UPDATE users SET active = 0
+            WHERE id = " . $this->id;
+
         $this->db->query($query);
     }
 }
