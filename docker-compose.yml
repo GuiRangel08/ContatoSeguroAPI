@@ -24,7 +24,7 @@ services:
     ports:
       - 3001:3000
     volumes: 
-      - ./frontend:/app
+      - ./web-app:/app
 
   db:
     image: mysql:8.0

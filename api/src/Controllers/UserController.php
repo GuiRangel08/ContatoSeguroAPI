@@ -125,7 +125,7 @@ class UserController
         if ($this->user->getUserById()) {
             $this->user->inactive();
             header('HTTP/1.1 200 OK');
-            return ['message' => 'User deleted successfully'];
+            return ['message' => 'User inactived successfully'];
         } else {
             header('HTTP/1.1 404 (Not Found)');
             return ['message' => 'User not found'];
