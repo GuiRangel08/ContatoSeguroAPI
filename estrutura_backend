@@ -1,0 +1,40 @@
+tenho a seguinte estrutura no meu projeto e preciso carregar os dados do arquivo .env dentro do arquivo config/config.php
+
+contato_seguro
+├──.env
+meu-projeto/
+├── config/
+│   ├── config.php
+├── public/
+│   ├── index.php
+├── src/
+│   ├── controllers/
+│   │   ├── UserController.php
+│   │   └── CompanyController.php
+│   ├── models/
+│   │   ├── User.php
+│   │   └── Company.php
+│   ├── routes/
+│   │   └── api.php
+│   └── utils/
+│       └── Database.php
+└── vendor/
+
+
+
+Guilherme Rangel
+tenho 2 tabelas conforme abaixo, e preciso criar um relacionamento n para n entre elas
+
+- Usuário
+    - Nome: obrigatório para preenchimento
+    - E-mail: obrigatório para preenchimento
+    - Telefone: não obrigatório
+    - Data de nascimento: não obrigatório
+    - Cidade onde nasceu: não obrigatório
+    - Empresas: obrigatório para preenchimento
+
+- Empresa
+    - Nome: obrigatório para preenchimento
+    - CNPJ: obrigatório para preenchimento
+    - Endereço: obrigatório para preenchimento
+    - Usuários: obrigatório para preenchimento
