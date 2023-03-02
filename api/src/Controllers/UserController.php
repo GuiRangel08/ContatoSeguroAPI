@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\UserCompanyModel;
 
 use App\Config\Database;
 
@@ -13,20 +13,23 @@ class UserController
 {
     private $db;
     private $user;
-    private $bodyData = [
+    private $userCompany;
+    private $apiBodyData = [
         'id',
         'name',
         'email',
         'phone',
-        'birthDate',
-        'birthCity',
-        'birthState'
+        'birth_date',
+        'birth_city',
+        'birth_state',
+        'companies'
     ];
 
     public function __construct()
     {
         $this->db = new Database();
         $this->user = new UserModel($this->db->getConnection());
+        $this->userCompany = new UserCompanyModel($this->db->getConnection());
     }
 
     public function getAll()
@@ -36,9 +39,9 @@ class UserController
         return $result;
     }
 
-    public function getSingle($id)
+    public function getSingle($data)
     {
-        $id = (int) $id['id'];
+        $id = (int) $data['id'];
         $this->user->setId($id);
 
         $result = $this->user->getUserById();
@@ -56,64 +59,95 @@ class UserController
 
     public function store($data)
     {
-        $required = [
+
+        $requiredFields = [
             'name',
-            'email'
+            'email',
+            'companies'
         ];
 
-        if (!RequirementUtils::requerimentFields($data, $required)){
-            return RequirementUtils::missingRequirementFields();
+        if (!RequirementUtils::hasAllRequiredFields($data, $requiredFields)){
+            return RequirementUtils::errorMsgMissingRequiredFields();
         }
 
-        $params = DataPreparationUtils::prepareMissingData($this->bodyData, $data);
+        $data = DataPreparationUtils::prepareMissingData($this->apiBodyData, $data);
 
-        $this->user->setName($params['name']);
-        $this->user->setEmail($params['email']);
-        $this->user->setPhone($params['phone']);
-        $this->user->setBirthDate($params['birthDate']);
-        $this->user->setBirthCity($params['birthCity']);
-        $this->user->setBirthState($params['birthState']);
+        $this->user->setName($data['name']);
+        $this->user->setEmail($data['email']);
+        $this->user->setPhone($data['phone']);
+        $this->user->setBirthDate($data['birth_date']);
+        $this->user->setBirthCity($data['birth_city']);
+        $this->user->setBirthState($data['birth_state']);
 
-        $this->user->save();
+        try {
+            $this->db->getConnection()->begin_transaction();
 
-        header('HTTP/1.1 201 Created');
-        return [
-            'message' => 'User created successfully'
-        ];
+            $this->user->store();
+
+            $id = $this->db->getConnection()->insert_id;
+
+            $this->userCompany->setUserId($id);
+
+            foreach ($data['companies'] as $company) {
+                $this->userCompany->setCompanyId($company);
+                $this->userCompany->store();
+            }
+
+            $this->db->getConnection()->commit();
+
+            header('HTTP/1.1 201 Created');
+            return [
+                'message' => 'User created successfully'
+            ];
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'message' => 'Error creating user'
+            ];
+        }
     }
 
     public function update($data)
     {
-        $required = [
+        $requiredFields = [
             'id',
             'name',
             'email'
         ];
 
-        if (!RequirementUtils::requerimentFields($data, $required)){
-            return RequirementUtils::missingRequirementFields();
+        if (!RequirementUtils::hasAllRequiredFields($data, $requiredFields)){
+            return RequirementUtils::errorMsgMissingRequiredFields();
         }
         
         $id = (int) $data['id'];
         $this->user->setId($id);
 
-        $params = DataPreparationUtils::prepareMissingData($this->bodyData, $data);
+        $params = DataPreparationUtils::prepareMissingData($this->apiBodyData, $data);
 
-        if ($this->user->getUserById()) {
-            $this->user->setName($params['name']);
-            $this->user->setEmail($params['email']);
-            $this->user->setPhone($params['phone']);
-            $this->user->setBirthDate($params['birthDate']);
-            $this->user->setBirthCity($params['birthCity']);
-            $this->user->setBirthState($params['birthState']);
+        try {
+            if ($this->user->getUserById()) {
+                $this->user->setName($params['name']);
+                $this->user->setEmail($params['email']);
+                $this->user->setPhone($params['phone']);
+                $this->user->setBirthDate($params['birth_date']);
+                $this->user->setBirthCity($params['birth_city']);
+                $this->user->setBirthState($params['birth_state']);
 
-            $this->user->update();
+                $this->user->update();
 
-            header('HTTP/1.1 200 OK');
-            return ['message' => 'User updated successfully'];
-        } else {
-            header('HTTP/1.1 404 (Not Found)');
-            return ['message' => 'User not found'];
+                header('HTTP/1.1 200 OK');
+                return ['message' => 'User updated successfully'];
+            } else {
+                header('HTTP/1.1 404 (Not Found)');
+                return ['message' => 'User not found'];
+            }
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'message' => 'Error updating user, try again.'
+            ];
         }
     }
 
@@ -122,13 +156,22 @@ class UserController
         $id = (int) $data['id'];
         $this->user->setId($id);
 
-        if ($this->user->getUserById()) {
-            $this->user->inactive();
-            header('HTTP/1.1 200 OK');
-            return ['message' => 'User inactived successfully'];
-        } else {
-            header('HTTP/1.1 404 (Not Found)');
-            return ['message' => 'User not found'];
+        try{
+
+            if ($this->user->getUserById()) {
+                $this->user->inactive();
+                header('HTTP/1.1 200 OK');
+                return ['message' => 'User inactived successfully'];
+            } else {
+                header('HTTP/1.1 404 (Not Found)');
+                return ['message' => 'User not found'];
+            }
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'message' => 'User inactivation error'
+            ];
         }
     }
 }

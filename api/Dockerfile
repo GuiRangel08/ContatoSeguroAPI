@@ -21,6 +21,6 @@ RUN echo "DocumentRoot /var/www/html/public" > /etc/apache2/sites-enabled/000-de
 
 RUN a2enmod rewrite
 
-EXPOSE 80
+EXPOSE 81
 
 CMD ["apache2-foreground"]

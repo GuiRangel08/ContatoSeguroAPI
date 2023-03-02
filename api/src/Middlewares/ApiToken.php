@@ -4,12 +4,11 @@ namespace App\Middlewares;
 
 class ApiToken
 {
-    public static function validate($token) {
-        if ($token !== $_ENV['API_TOKEN']) {
-            return false;
-            exit;
+    public static function isValid($token) {
+        if ($token === $_ENV['API_TOKEN']) {
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

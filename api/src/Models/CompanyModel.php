@@ -63,9 +63,9 @@ class CompanyModel
     {
         $query = "
             INSERT INTO 
-                companies (name, cnpj, address) 
+                companies (name, cnpj, address, active) 
             VALUES 
-                ('$this->name','$this->cnpj','$this->address')
+                ('$this->name','$this->cnpj','$this->address', 1)
         ";
 
         $this->db->query($query);

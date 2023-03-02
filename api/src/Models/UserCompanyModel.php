@@ -48,9 +48,8 @@ class UserCompanyModel
         return false;
     }
 
-    public function save()
+    public function store()
     {
-
         $query = "
             INSERT INTO 
                 users_companies (user_id, company_id) 

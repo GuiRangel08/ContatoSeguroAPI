@@ -8,12 +8,14 @@ use App\Config\Database;
 
 use App\Utils\RequirementUtils;
 use App\Utils\DataPreparationUtils;
+use Exception;
+use PhpParser\Node\Expr;
 
 class CompanyController
 {
     private $db;
     private $company;
-    private $bodyData = [
+    private $apiBodyData = [
         'id',
         'name',
         'cnpj',
@@ -59,22 +61,31 @@ class CompanyController
             'address'
         ];
 
-        if (!RequirementUtils::requerimentFields($data, $required)){
-            return RequirementUtils::missingRequirementFields();
+        if (!RequirementUtils::hasAllRequiredFields($data, $required)){
+            return RequirementUtils::errorMsgMissingRequiredFields();
         }
 
-        $params = DataPreparationUtils::prepareMissingData($this->bodyData, $data);
+        $params = DataPreparationUtils::prepareMissingData($this->apiBodyData, $data);
 
         $this->company->setName($params['name']);
         $this->company->setCnpj($params['cnpj']);
         $this->company->setAddress($params['address']);
 
-        $this->company->save();
+        try {
 
-        header('HTTP/1.1 201 Created');
-        return [
-            'message' => 'Company created successfully'
-        ];
+            $this->company->save();
+            
+            header('HTTP/1.1 201 Created');
+            return [
+                'message' => 'Company created successfully'
+            ];
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'message' => 'Error creating company'
+            ];
+        }
     }
 
     public function update($data)
@@ -86,27 +97,36 @@ class CompanyController
             'address'
         ];
 
-        if (!RequirementUtils::requerimentFields($data, $required)){
-            return RequirementUtils::missingRequirementFields();
+        if (!RequirementUtils::hasAllRequiredFields($data, $required)){
+            return RequirementUtils::errorMsgMissingRequiredFields();
         }
         
         $id = (int) $data['id'];
         $this->company->setId($id);
 
-        $params = DataPreparationUtils::prepareMissingData($this->bodyData, $data);
+        $params = DataPreparationUtils::prepareMissingData($this->apiBodyData, $data);
 
-        if ($this->company->getCompanyById()) {
-            $this->company->setName($params['name']);
-            $this->company->setCnpj($params['cnpj']);
-            $this->company->setAddress($params['address']);
+        try {
 
-            $this->company->update();
-
-            header('HTTP/1.1 200 OK');
-            return ['message' => 'Company updated successfully'];
-        } else {
-            header('HTTP/1.1 404 (Not Found)');
-            return ['message' => 'Company not found'];
+            if ($this->company->getCompanyById()) {
+                $this->company->setName($params['name']);
+                $this->company->setCnpj($params['cnpj']);
+                $this->company->setAddress($params['address']);
+                
+                $this->company->update();
+                
+                header('HTTP/1.1 200 OK');
+                return ['message' => 'Company updated successfully'];
+            } else {
+                header('HTTP/1.1 404 (Not Found)');
+                return ['message' => 'Company not found'];
+            }
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'message' => 'Error updating company'
+            ];
         }
     }
 
@@ -115,13 +135,22 @@ class CompanyController
         $id = (int) $data['id'];
         $this->company->setId($id);
 
-        if ($this->company->getCompanyById()) {
-            $this->company->inactive();
-            header('HTTP/1.1 200 OK');
-            return ['message' => 'Company inactived successfully'];
-        } else {
-            header('HTTP/1.1 404 (Not Found)');
-            return ['message' => 'Company not found'];
+        try {
+
+            if ($this->company->getCompanyById()) {
+                $this->company->inactive();
+                header('HTTP/1.1 200 OK');
+                return ['message' => 'Company inactived successfully'];
+            } else {
+                header('HTTP/1.1 404 (Not Found)');
+                return ['message' => 'Company not found'];
+            }
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'message' => 'Company inactivation error'
+            ];
         }
     }
 }

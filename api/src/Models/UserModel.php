@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 class UserModel
@@ -11,6 +10,7 @@ class UserModel
     private $birthDate;
     private $birthCity;
     private $birthState;
+    private $companies;
     private $db;
 
     public function __construct($connection)
@@ -52,7 +52,7 @@ class UserModel
     {
         $this->birthState = $birthState;
     }
-
+    
     public function getAllInactiveUsers()
     {
         $query = "
@@ -103,13 +103,12 @@ class UserModel
         return $result->fetch_assoc();
     }
 
-    public function save()
+    public function store()
     {
         $query = "
-            INSERT INTO 
-                users (name, email, phone, birth_date, birth_city, birth_state) 
-            VALUES 
-                ('$this->name','$this->email','$this->phone','$this->birthDate','$this->birthCity','$this->birthState')
+            INSERT INTO users (name, email, phone, birth_date, birth_city, birth_state, active) 
+            VALUES ('$this->name', '$this->email', '$this->phone', " .
+            (!empty($this->birthDate) ? "'$this->birthDate'" : "NULL") . ", '$this->birthCity', '$this->birthState', 1)
         ";
 
         $this->db->query($query);
@@ -120,7 +119,9 @@ class UserModel
         $query = "
             UPDATE users 
             SET name='$this->name', email='$this->email', phone='$this->phone', 
-                birth_date='$this->birthDate', birth_city='$this->birthCity', 
+                birth_date=" .
+                (!empty($this->birthDate) ? "'$this->birthDate'" : "NULL") .
+                ", birth_city='$this->birthCity', 
                 birth_state='$this->birthState' 
             WHERE id = $this->id
         ";

@@ -13,12 +13,18 @@ $_POST = json_decode(file_get_contents('php://input' ),true);
 
 $headers = apache_request_headers();
 
-if (!isset($headers['Authorization']) || !ApiToken::validate($headers['Authorization'])) {
-    header('HTTP/1.1 401 Unauthorized');
-    echo json_encode([
-        'error' => 'Token inválido'
-    ]);
-    exit;
+// Web Browser send a Options Request before Get Request, and with no authorization token, which is required for subsequent requests
+if ($_SERVER['REQUEST_METHOD'] !== 'OPTIONS') {
+    if (
+        !isset($headers['Authorization']) 
+        || !ApiToken::isValid($headers['Authorization'])
+    ) {
+        header('HTTP/1.1 401 Unauthorized');
+        echo json_encode([
+            'error' => 'Token inválido'
+        ]);
+        exit();
+    }
 }
 
 $dispatcher = FastRoute\simpleDispatcher(function(RouteCollector $r) {
