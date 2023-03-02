@@ -59,7 +59,7 @@ class CompanyModel
         return $result->fetch_assoc();
     }
 
-    public function save()
+    public function store()
     {
         $query = "
             INSERT INTO 
@@ -82,7 +82,7 @@ class CompanyModel
         $this->db->query($query);
     }
 
-    public function inactive()
+    public function inactivate()
     {
         $query = "
             UPDATE companies SET active=0 

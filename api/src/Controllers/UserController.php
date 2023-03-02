@@ -36,6 +36,12 @@ class UserController
     {
         $result = $this->user->getAllUsers();
 
+        foreach ($result as &$row) {
+            $companies_id = explode(",", $row["companies_id"]);
+            $companies = explode(",", $row["companies"]);
+            $row["companies"] = array_combine($companies_id, $companies);
+        }
+
         return $result;
     }
 
@@ -49,9 +55,14 @@ class UserController
         if (!$result) {
             header('HTTP/1.1 404 (Not Found)');
             return [
+                'error' => true,
                 'message' => 'User not found'
             ];
         }
+
+        $companies_id = explode(",", $result["companies_id"]);
+        $companies = explode(",", $result["companies"]);
+        $result["companies"] = array_combine($companies_id, $companies);
 
         header('HTTP/1.1 200 OK');
         return $result;
@@ -97,12 +108,14 @@ class UserController
 
             header('HTTP/1.1 201 Created');
             return [
+                'error' => false,
                 'message' => 'User created successfully'
             ];
         } catch (Exception) {
             $this->db->getConnection()->rollBack();
             header('HTTP/1.1 400 Bad Request');
             return [
+                'error' => true,
                 'message' => 'Error creating user'
             ];
         }
@@ -136,16 +149,34 @@ class UserController
 
                 $this->user->update();
 
+                $this->userCompany->setUserId($id);
+                
+                foreach ($data['companies'] as $company) {
+
+                    $this->userCompany->setCompanyId($company);
+
+                    if(!$this->userCompany->dataExists()){
+                        $this->userCompany->store();
+                    }
+
+                }
+
                 header('HTTP/1.1 200 OK');
-                return ['message' => 'User updated successfully'];
+                return [
+                    'error' => false,
+                    'message' => 'User updated successfully'];
             } else {
                 header('HTTP/1.1 404 (Not Found)');
-                return ['message' => 'User not found'];
+                return [
+                    'error' => true,
+                    'message' => 'User not found'
+                ];
             }
         } catch (Exception) {
             $this->db->getConnection()->rollBack();
             header('HTTP/1.1 400 Bad Request');
             return [
+                'error' => true,
                 'message' => 'Error updating user, try again.'
             ];
         }
@@ -159,17 +190,24 @@ class UserController
         try{
 
             if ($this->user->getUserById()) {
-                $this->user->inactive();
+                $this->user->inactivate();
                 header('HTTP/1.1 200 OK');
-                return ['message' => 'User inactived successfully'];
+                return [
+                    'error' => false,
+                    'message' => 'User inactived successfully'
+                ];
             } else {
                 header('HTTP/1.1 404 (Not Found)');
-                return ['message' => 'User not found'];
+                return [
+                    'error' => true,
+                    'message' => 'User not found'
+                ];
             }
         } catch (Exception) {
             $this->db->getConnection()->rollBack();
             header('HTTP/1.1 400 Bad Request');
             return [
+                'error' => true,
                 'message' => 'User inactivation error'
             ];
         }

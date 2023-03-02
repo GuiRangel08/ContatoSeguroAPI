@@ -18,6 +18,9 @@ class RequirementUtils
 
     public static function errorMsgMissingRequiredFields() {
         header('HTTP/1.1 400 Bad Request');
-        return ['error' => 'Missing required fields'];
+        return [
+            'error' => true, 
+            'message' => 'Missing required fields'
+        ];
     }
 }

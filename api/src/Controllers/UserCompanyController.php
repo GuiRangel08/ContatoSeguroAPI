@@ -8,6 +8,7 @@ use App\Models\UserCompanyModel;
 use App\Config\Database;
 
 use App\Utils\RequirementUtils;
+use Exception;
 
 class UserCompanyController
 {
@@ -30,35 +31,58 @@ class UserCompanyController
 
     public function store($data)
     {
-        foreach ($data as $userCompany) {
-            $required = [
-                'user_id',
-                'company_id'
+        try {
+            foreach ($data as $userCompany) {
+                $required = [
+                    'user_id',
+                    'company_id'
+                ];
+                
+                if (!RequirementUtils::hasAllRequiredFields($userCompany, $required)){
+                    return RequirementUtils::errorMsgMissingRequiredFields();
+                }
+                $this->userCompanyModel->setUserId($userCompany['user_id']);
+                $this->userCompanyModel->setCompanyId($userCompany['company_id']);
+                
+                $this->userCompanyModel->store();
+            }
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'error' => true,
+                'message' => 'Erro on including one or more User Company'
             ];
-            
-            if (!RequirementUtils::requerimentFields($userCompany, $required)){
-                return RequirementUtils::missingRequirementFields();
-            }
-
-            $this->userCompanyModel->setUserId($userCompany['user_id']);
-            $this->userCompanyModel->setCompanyId($userCompany['company_id']);
-
-            try {
-                $this->userCompanyModel->save();
-            } catch (mysqli_sql_exception $e) {
-                continue;
-            }
         }
 
         header('HTTP/1.1 200 OK');
         return [
+            'error' => false,
             'message' => 'Update successfully'
         ];
     }
 
-    public function delete()
+    public function delete($data)
     {
-        $query = "DELETE FROM companies WHERE id = " . $this->id;
-        $this->db->query($query);
+        $userId = (int) $data['user_id'];
+        $companyId = (int) $data['company_id'];
+
+        $this->userCompanyModel->setUserId($userId);
+        $this->userCompanyModel->setCompanyId($companyId);
+
+        try {
+            $this->userCompanyModel->inactive();
+            return [
+                'error' => false,
+                'message' => 'User Company inactived successfully'
+            ];
+        } catch (Exception) {
+            $this->db->getConnection()->rollBack();
+            header('HTTP/1.1 400 Bad Request');
+            return [
+                'error' => true,
+                'message' => 'User Company inactivation error'
+            ];
+        }
     }
 }

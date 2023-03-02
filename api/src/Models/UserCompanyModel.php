@@ -52,19 +52,19 @@ class UserCompanyModel
     {
         $query = "
             INSERT INTO 
-                users_companies (user_id, company_id) 
+                users_companies (user_id, company_id, active) 
             VALUES 
-                ('$this->userId','$this->companyId')
+                ('$this->userId','$this->companyId', 1)
         ";
 
         $this->db->query($query);
     }
 
-    public function delete()
+    public function inactive()
     {
         $query = "
-        DELETE FROM users_companies 
-        WHERE used_id = $this->userId and company_id = $this->companyId
+            UPDATE users_companies SET active = 0
+            WHERE used_id = $this->userId and company_id = $this->companyId
         ";
         
         $this->db->query($query);

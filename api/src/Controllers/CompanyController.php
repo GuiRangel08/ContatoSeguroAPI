@@ -45,6 +45,7 @@ class CompanyController
         if (!$result) {
             header('HTTP/1.1 404 (Not Found)');
             return [
+                'error' => true,
                 'message' => 'Company not found'
             ];
         }
@@ -73,16 +74,18 @@ class CompanyController
 
         try {
 
-            $this->company->save();
+            $this->company->store();
             
             header('HTTP/1.1 201 Created');
             return [
+                'error' => false,
                 'message' => 'Company created successfully'
             ];
         } catch (Exception) {
             $this->db->getConnection()->rollBack();
             header('HTTP/1.1 400 Bad Request');
             return [
+                'error' => true,
                 'message' => 'Error creating company'
             ];
         }
@@ -116,15 +119,22 @@ class CompanyController
                 $this->company->update();
                 
                 header('HTTP/1.1 200 OK');
-                return ['message' => 'Company updated successfully'];
+                return [
+                    'error' => false,
+                    'message' => 'Company updated successfully'
+                ];
             } else {
                 header('HTTP/1.1 404 (Not Found)');
-                return ['message' => 'Company not found'];
+                return [
+                    'error' => true,
+                    'message' => 'Company not found'
+                ];
             }
         } catch (Exception) {
             $this->db->getConnection()->rollBack();
             header('HTTP/1.1 400 Bad Request');
             return [
+                'error' => true,
                 'message' => 'Error updating company'
             ];
         }
@@ -136,19 +146,25 @@ class CompanyController
         $this->company->setId($id);
 
         try {
-
             if ($this->company->getCompanyById()) {
-                $this->company->inactive();
+                $this->company->inactivate();
                 header('HTTP/1.1 200 OK');
-                return ['message' => 'Company inactived successfully'];
+                return [
+                    'error' => false,
+                    'message' => 'Company inactived successfully'
+                ];
             } else {
                 header('HTTP/1.1 404 (Not Found)');
-                return ['message' => 'Company not found'];
+                return [
+                    'error' => true,
+                    'message' => 'Company not found'
+                ];
             }
         } catch (Exception) {
             $this->db->getConnection()->rollBack();
             header('HTTP/1.1 400 Bad Request');
             return [
+                
                 'message' => 'Company inactivation error'
             ];
         }

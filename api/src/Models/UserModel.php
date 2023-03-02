@@ -77,7 +77,9 @@ class UserModel
     public function getAllUsers()
     {
         $query = "
-            SELECT u.*, GROUP_CONCAT(c.name SEPARATOR ',') as companies
+            SELECT u.*,
+                GROUP_CONCAT(c.id SEPARATOR ',') as companies_id,
+                GROUP_CONCAT(c.name SEPARATOR ',') as companies
             FROM users u
             JOIN users_companies uc on u.id = uc.user_id
             JOIN companies c on uc.company_id = c.id
@@ -86,18 +88,22 @@ class UserModel
         ";
 
         $result = $this->db->query($query);
-        $rows = $result->fetch_all(MYSQLI_ASSOC);
 
-        foreach ($rows as &$row) {
-            $row['companies'] = explode(',', $row['companies']);
-        }
-
-        return $rows;
+        return $result->fetch_all(MYSQLI_ASSOC);
 }
 
     public function getUserById()
     {
-        $query = "SELECT * FROM users WHERE id = " . $this->id;
+        $query = "
+            SELECT u.*,
+                GROUP_CONCAT(c.id SEPARATOR ',') as companies_id,
+                GROUP_CONCAT(c.name SEPARATOR ',') as companies
+            FROM users u
+            JOIN users_companies uc on u.id = uc.user_id
+            JOIN companies c on uc.company_id = c.id
+            WHERE u.active = 1 AND u.id = $this->id
+            GROUP BY u.id;
+        ";
         $result = $this->db->query($query);
 
         return $result->fetch_assoc();
@@ -129,7 +135,7 @@ class UserModel
         $this->db->query($query);
     }
 
-    public function inactive()
+    public function inactivate()
     {
         $query = "
             UPDATE users SET active = 0

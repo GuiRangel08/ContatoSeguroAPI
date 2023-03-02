@@ -1,5 +1,4 @@
 version: '3.9'
-
 services: 
 
   api:
@@ -8,23 +7,29 @@ services:
       dockerfile: Dockerfile
     container_name: api
     ports:
-      - 3000:80
+      - 81:80
     restart: always
     volumes:
       - ./api:/var/www/html/
     depends_on:
       - db
+    networks:
+        - my-network
 
   web-app:
-    image: node:18.14-alpine
+    image: node:19.7.0-alpine3.17
     container_name: web-app
     restart: always
     working_dir: /app
     command: "npm start"
     ports:
-      - 3001:3000
+      - 3000:3000
     volumes: 
       - ./web-app:/app
+    depends_on:
+      - api
+    networks:
+        - my-network
 
   db:
     image: mysql:8.0
@@ -39,6 +44,8 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     volumes:
       - ./data:/var/lib/mysql
+    networks:
+        - my-network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
@@ -50,3 +57,8 @@ services:
       - PMA_PORT=3306
     depends_on:
       - db
+    networks:
+        - my-network
+
+networks:
+  my-network:

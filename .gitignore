@@ -2,3 +2,4 @@ estrutura_backend
 .vscode
 requisitos.md
 data/*
+docker-compose.yml
