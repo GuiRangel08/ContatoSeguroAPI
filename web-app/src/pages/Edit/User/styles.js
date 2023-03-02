@@ -77,7 +77,7 @@ export const Input = styled.input`
     resize: vertical;
 `;
 
-export const SelectStyle = styled.select`
+export const Select = styled.select`
     width: 100%;
     padding: 12px;
     border: 1px solid #ccc;
