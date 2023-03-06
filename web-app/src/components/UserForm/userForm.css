@@ -1,0 +1,14 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .centered-div {
+    display: flex;
+    /* flex-direction: row; */
+    border:1px solid black;
+    width: 800px;
+    /* height: 800px; */
+  }

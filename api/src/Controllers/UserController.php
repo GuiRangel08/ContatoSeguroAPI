@@ -21,7 +21,6 @@ class UserController
         'phone',
         'birth_date',
         'birth_city',
-        'birth_state',
         'companies'
     ];
 
@@ -88,7 +87,6 @@ class UserController
         $this->user->setPhone($data['phone']);
         $this->user->setBirthDate($data['birth_date']);
         $this->user->setBirthCity($data['birth_city']);
-        $this->user->setBirthState($data['birth_state']);
 
         try {
             $this->db->getConnection()->begin_transaction();
@@ -145,7 +143,6 @@ class UserController
                 $this->user->setPhone($params['phone']);
                 $this->user->setBirthDate($params['birth_date']);
                 $this->user->setBirthCity($params['birth_city']);
-                $this->user->setBirthState($params['birth_state']);
 
                 $this->user->update();
 

@@ -1,44 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useGet, useDelete } from '../../hooks/useApi';
+import './index.css';
 
 import { Container, TitleSection, ButtonAction, SubmitButton, EditButton, DeleteButton, Table, Title } from './styles';
 
-export const Home = () => {
-  
-  const [data, setData] = useState([]);
+export function Home() {
 
-  const getUsers = async () => {
-    fetch('http://localhost:81/api/users', {
-      method: 'GET',
-      headers: {
-        'Authorization': '1b9552ff-5940-4f16-af96-97f248a1535f'
-      }
-    })
-    .then((response) => response.json())
-    .then((responseJson) =>(
-      console.log(responseJson),
-      setData(responseJson)
-    ));
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: users, refetch } = useGet('users');
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [userId, setUserId] = useState();
+  const { deleteUser } = useDelete();
+  const nameFilterInput = useRef();
+  const emailFilterInput = useRef();
+  const phoneFilterInput = useRef();
+  const birthDateFilterInput = useRef();
+  const birthCityFilterInput = useRef();
+  const companyFilterInput = useRef();
+
+  function handleDeleteClick(id) {
+    setIsModalOpen(true);
+    setUserId(id)
   }
 
-  const deleteUser = async (userId) => {
-    await fetch('http://localhost:81/api/users/' + userId, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': '1b9552ff-5940-4f16-af96-97f248a1535f'
-      }
-    })
-    .then((response) => response.json())
-    .then((responseJson) => {
-      console.log(responseJson);
-    }).catch(() => {
-      console.log("Erro: Produto não excluído com sucesso.");
-    })
-  };
-
   useEffect(() => {
-    getUsers();
-  },[])
+    setFilteredUsers(users);
+  }, [users]);
+
+  function handleFilterChange() {
+    const nameFilterValue = nameFilterInput.current.value;
+    const emailFilterValue = emailFilterInput.current.value;
+    const phoneFilterValue = phoneFilterInput.current.value;
+    const birthDateFilterValue = birthDateFilterInput.current.value;
+    const birthCityFilterValue = birthCityFilterInput.current.value;
+    const companyFilterValue = companyFilterInput.current.value;
+  
+    let filtered = users;
+  
+    if (nameFilterValue) {
+      filtered = filtered.filter(user => user.name.includes(nameFilterValue));
+    }
+  
+    if (emailFilterValue) {
+      filtered = filtered.filter(user => user.email.includes(emailFilterValue));
+    }
+
+    if (phoneFilterValue) {
+      filtered = filtered.filter(user => user.email.includes(emailFilterValue));
+    }
+
+    if (birthDateFilterValue) {
+      filtered = filtered.filter(user => user.email.includes(emailFilterValue));
+    }
+
+    if (birthCityFilterValue) {
+      filtered = filtered.filter(user => user.email.includes(emailFilterValue));
+    }
+
+    if (companyFilterValue) {
+      filtered = filtered.filter(user => user.email.includes(emailFilterValue));
+    }
+  
+    setFilteredUsers(filtered);
+  }
+  
+  function handleConfirmClick() {
+    deleteUser(`/users/${userId}`);
+    refetch();
+    setIsModalOpen(false);
+  }
+
+  function handleCancelClick() {
+    setIsModalOpen(false);
+  }
 
   return (
     <Container>
@@ -55,17 +90,35 @@ export const Home = () => {
       <Table>
         <thead>
           <tr>
-            <th>Nome</th>
-            <th>E-mail</th>
-            <th>Telefone</th>
-            <th>Data de Nascimento</th>
-            <th>Cidade natal</th>
-            <th>Empresas</th> 
+            <th>
+              Nome
+              <input type="text" ref={nameFilterInput} onChange={handleFilterChange} />
+            </th>
+            <th>
+              E-mail
+              <input type="text" ref={emailFilterInput} onChange={handleFilterChange} />
+            </th>
+            <th>
+              Telefone
+              <input type="text" ref={phoneFilterInput} onChange={handleFilterChange} />
+            </th>
+            <th>
+              Data de Nascimento
+              <input type="date" ref={birthDateFilterInput} onChange={handleFilterChange} />  
+            </th>
+            <th>
+              Cidade natal
+              <input type="text" ref={birthCityFilterInput} onChange={handleFilterChange} />
+            </th>
+            <th>
+              Empresas
+              <input type="text" ref={companyFilterInput} onChange={handleFilterChange} />
+            </th> 
             <th>Ações</th> 
           </tr>
         </thead>
         <tbody>
-          {Object.values(data).map(user => (
+          {filteredUsers?.map(user => (
             <tr key={user.id}>
               <td>{user.name}</td>
               <td>{user.email}</td>
@@ -76,11 +129,20 @@ export const Home = () => {
                 {JSON.stringify(user.companies)}
               </td>
               <td>
-                <Link to={'/editar-usuario/' + user.id}>
+                <Link to={`/editar-usuario/${user.id}`}>
                     <EditButton>Editar</EditButton>
                 </Link>
                 <Link>
-                  <DeleteButton onClick={() => deleteUser(user.id)}>Apagar</DeleteButton>
+                  <DeleteButton onClick={() => handleDeleteClick(user.id)}>Apagar</DeleteButton>
+                  {isModalOpen && (
+                    <div className='modal'>
+                      <div className='modal-content'>
+                        <p>Tem certeza de que deseja apagar este registro?</p>
+                        <button onClick={handleConfirmClick}>Sim</button>
+                        <button onClick={handleCancelClick}>Não</button>
+                      </div>
+                    </div>
+                  )}
                 </Link>
               </td>
             </tr>

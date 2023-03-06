@@ -9,7 +9,6 @@ class UserModel
     private $phone;
     private $birthDate;
     private $birthCity;
-    private $birthState;
     private $companies;
     private $db;
 
@@ -48,11 +47,6 @@ class UserModel
         $this->birthCity = $birthCity;
     }
 
-    public function setBirthState($birthState)
-    {
-        $this->birthState = $birthState;
-    }
-    
     public function getAllInactiveUsers()
     {
         $query = "
@@ -112,9 +106,9 @@ class UserModel
     public function store()
     {
         $query = "
-            INSERT INTO users (name, email, phone, birth_date, birth_city, birth_state, active) 
+            INSERT INTO users (name, email, phone, birth_date, birth_city, active) 
             VALUES ('$this->name', '$this->email', '$this->phone', " .
-            (!empty($this->birthDate) ? "'$this->birthDate'" : "NULL") . ", '$this->birthCity', '$this->birthState', 1)
+            (!empty($this->birthDate) ? "'$this->birthDate'" : "NULL") . ", '$this->birthCity', 1)
         ";
 
         $this->db->query($query);
@@ -127,8 +121,7 @@ class UserModel
             SET name='$this->name', email='$this->email', phone='$this->phone', 
                 birth_date=" .
                 (!empty($this->birthDate) ? "'$this->birthDate'" : "NULL") .
-                ", birth_city='$this->birthCity', 
-                birth_state='$this->birthState' 
+                ", birth_city='$this->birthCity'
             WHERE id = $this->id
         ";
 
